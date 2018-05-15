@@ -1,5 +1,3 @@
-# Network-Automation
-
 # VLAN Change Utility
 
 This VLAN utility was developed to empower other teams the ability to change their own VLAN.
