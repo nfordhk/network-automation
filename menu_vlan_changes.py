@@ -36,7 +36,40 @@ def showInt():
     showInt = net_connect.send_command('\nshow int status')
     print (showInt)
 
-# def modifyInterface():
+def modifyInterface():
+    showInt = net_connect.send_command('\nshow int status')
+    interface = input('\nWhat interface would you like to modify e.g Gi0/1: ')
+    print('\nShowing Current Configuration')
+    output = net_connect.send_command('show run int ' + interface)
+    if 'Invalid input detected' in output:  # Checks for valid port selection
+        print('*****ERROR: INVALID PORT TYPE****')
+        return
+    print(output)
+    if "switchport mode trunk" in output:  # Checks for trunk port
+        print('*****ERROR: RESTRICTED PORT******')
+        return
+
+    changeDecision = input('\nType "Yes" to change the VLAN or press any key to return: ').upper()
+
+    # Starting VLAN configuration
+    if changeDecision == 'YES' or changeDecision == 'Y':
+        vlanNumber = input('\nPlease assign VLAN number: ')  # User enters VLAN number
+        showVlan = net_connect.send_command('\nshow vlan brief')  # Store variable if user does not execute menu option1
+        if vlanNumber in showVlan:  # Checks for valid vlan
+            print('\nAssiging VLAN number...')
+            config_commands = [  # config_commands list array.
+                'Interface ' + interface,
+                'switchport access vlan ' + vlanNumber
+            ]
+            net_connect.send_config_set(config_commands)
+            print('\nVlan Updated...')
+            print('\nShowing Updated Configuration')
+            output = net_connect.send_command('show run int ' + interface)  # Show Updated Config after changes
+            print(output)
+            print('\nWriting Configuration...')
+            net_connect.send_command_expect('write mem')  # Write Mem
+        else:
+            print('******ERROR: INVALID VLAN CHOICE******')
 
 def exitProgram():
     print ("\nExiting Program")
@@ -89,40 +122,7 @@ while True:     # While loop which will keep going until loop = False
     elif menuChoice=='2':
         showInt()
     elif menuChoice=='3':
-        showInt = net_connect.send_command('\nshow int status')
-        interface = input ('\nWhat interface would you like to modify e.g Gi0/1: ')
-        print ('\nShowing Current Configuration')
-        output = net_connect.send_command('show run int '+interface)
-        if 'Invalid input detected' in output: # Checks for valid port selection 
-            print ('*****ERROR: INVALID PORT TYPE****')
-            continue
-        print (output)
-        if "switchport mode trunk" in output: # Checks for trunk port
-            print ('*****ERROR: RESTRICTED PORT******')
-            continue
-        
-        changeDecision = input('\nType "Yes" to change the VLAN or press any key to return: ').upper()
-        
-# Starting VLAN configuration
-        if changeDecision == 'YES' or changeDecision == 'Y':
-            vlanNumber = input ('\nPlease assign VLAN number: ') # User enters VLAN number
-            showVlan = net_connect.send_command('\nshow vlan brief') # Store variable if user does not execute menu option1
-            if vlanNumber in showVlan: # Checks for valid vlan
-                print ('\nAssiging VLAN number...')
-                config_commands = [                                  # config_commands list array.
-                'Interface '+interface,
-                'switchport access vlan '+vlanNumber 
-                            ]
-                net_connect.send_config_set(config_commands)
-                print ('\nVlan Updated...')
-                print ('\nShowing Updated Configuration')
-                output = net_connect.send_command('show run int '+interface) # Show Updated Config after changes 
-                print (output)
-                print ('\nWriting Configuration...')
-                net_connect.send_command_expect('write mem') # Write Mem
-            else:
-                print ('******ERROR: INVALID VLAN CHOICE******')
-                continue
+        modifyInterface()
 # Ending VLAN configuration
     elif menuChoice=='4':
         exitProgram()
